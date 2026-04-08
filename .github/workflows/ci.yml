@@ -31,3 +31,14 @@ jobs:
                 registry: ${{env.REGISTRY}}
                 username: ${{env.DOCKER_USERNAME}}
                 password: ${{secrets.DOCKER_TOKEN}}
+
+            - name: Build for CI
+              id: build-id # O id não é obrigatório, mas ele é útil para referenciar o resultado dessa etapa em etapas posteriores
+              uses: docker/build-push-action@v7 # Essa ação basicamente faz um "docker buildx build ."
+              with:
+                context: ./nestjs-project
+                file: ./nestjs-project/Dockerfile.prod
+                push: false # Eu quero apenas construir a imagem, não quero fazer o push ainda
+                load: true # Como o docker buildx build utiliza o driver do docker-container, eu preciso utilizar o load para a imagem ficar disponível para o docker engine
+                target: ci # O target é a etapa do Dockerfile que eu quero construir, nesse caso, a etapa "ci"
+                tags: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:ci
