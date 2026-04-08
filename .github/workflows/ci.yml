@@ -1,0 +1,33 @@
+name: CI
+
+# Define quando o fluxo vai ser disparado
+on:
+    push: 
+        branches: ["main"]
+        tags: ['v*.*.*']
+    pull_request:
+        branches: ["main"]
+env:
+    REGISTRY: docker.io
+    DOCKER_USERNAME: cristiantebaldi
+    IMAGE_NAME: cristiantebaldi/docker-prod-test
+
+jobs:
+    ci:
+        runs-on: ubuntu-latest # Os jobs precisarm rodar dentro de um ambiente, nesse caso, o ubuntu-latest
+        steps:
+            # O actions/checkout@v6 vai fazer um git checkout do código do repositório que seria o branch main ou a tag v*.*.*
+            - name: Checkout repository 
+              uses: actions/checkout@v6
+            
+            # Vai instalar o Docker + A configuração do Buildx
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v4 
+            
+            # Fazer o login para conseguir fazer o push da imagem e executar o docker scout
+            - name: Login into registry ${{env.REGISTRY}}
+              uses: docker/login-action@v4
+              with:
+                registry: ${{env.REGISTRY}}
+                username: ${{env.DOCKER_USERNAME}}
+                password: ${{secrets.DOCKER_TOKEN}}
