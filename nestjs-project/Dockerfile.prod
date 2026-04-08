@@ -1,6 +1,6 @@
 FROM node:24.9.0-slim AS ci
 
-ARG REPO_PATH=github.com/argentinaluiz/private-repo.git
+ARG REPO_PATH=github.com/cristiantebaldi/script-secreto.git
 
 RUN apt update && apt install -y \
     git \

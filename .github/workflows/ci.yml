@@ -42,3 +42,5 @@ jobs:
                 load: true # Como o docker buildx build utiliza o driver do docker-container, eu preciso utilizar o load para a imagem ficar disponível para o docker engine
                 target: ci # O target é a etapa do Dockerfile que eu quero construir, nesse caso, a etapa "ci"
                 tags: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:ci
+                secrets: |
+                  github_token=${{secrets.MY_GITHUB_TOKEN}}
