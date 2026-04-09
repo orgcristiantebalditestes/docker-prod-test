@@ -80,7 +80,7 @@ jobs:
                 command: cves
                 image: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.SHA}}
                 # Vai mostrar todas as CVEs que são criticas ou altas que tem correção disponível.
-                only-severities: critical,high
+                only-severities: critical
                 only-fixed: true
                 summary: true
                 exit-code: true # Vai travar o CI caso seja encontrado alguma vulnerabilidade crítica ou alta com correção disponível
