@@ -16,6 +16,13 @@ env:
 jobs:
     ci:
         runs-on: ubuntu-latest # Os jobs precisarm rodar dentro de um ambiente, nesse caso, o ubuntu-latest
+
+        permissions:
+            contents: read # Ler o conteúdo do repositório
+            packages: write # Permitir publicar pacotes no GitHub Packages
+            pull-requests: write # Permitir criar e atualizar pull requests
+            security-events: write # Enviar eventos de segurança para o GitHub Security
+
         steps:
             # O actions/checkout@v6 vai fazer um git checkout do código do repositório que seria o branch main ou a tag v*.*.*
             - name: Checkout repository 
@@ -65,4 +72,30 @@ jobs:
                 cache-from: type=gha
                 cache-to: type=gha,mode=max
                 secrets: |
-                  github_token=${{secrets.MY_GITHUB_TOKEN}}        
+                  github_token=${{secrets.MY_GITHUB_TOKEN}}
+            - name: Analyze for critical and high vulnerabilities
+              id: docker-scout-cves
+              uses: docker/scout-action@v1.20.4
+              with:
+                command: cves
+                image: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.SHA}}
+                # Vai mostrar todas as CVEs que são criticas ou altas que tem correção disponível.
+                only-severities: critical,high
+                only-fixed: true
+                summary: true
+                exit-code: true # Vai travar o CI caso seja encontrado alguma vulnerabilidade crítica ou alta com correção disponível
+
+            - name: Analyze for all CVEs
+              id: docker-scout-all-cves
+              uses: docker/scout-action@v1.20.4
+              with:
+                command: cves
+                image: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.SHA}}
+                summary: true
+                sarif-file: sarif.output.json
+            - name: Upload SARIF result
+              id: upload-sarif
+              if: ${{ github.event_name != 'pull_request' }} # O upload do SARIF só vai ser feito para os eventos de push, para não poluir a aba de segurança do GitHub com análises de PRs
+              uses: github/codeql-action/upload-sarif@v4
+              with:
+                sarif_file: sarif.output.json
