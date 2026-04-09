@@ -11,6 +11,7 @@ env:
     REGISTRY: docker.io
     DOCKER_USERNAME: cristiantebaldi
     IMAGE_NAME: cristiantebaldi/docker-prod-test
+    SHA: ${{ github.event.pull_request.head.sha || github.event.after}} # Isso aqui serve para o id do commit do PR ou pegar o id do commit do push.
 
 jobs:
     ci:
@@ -42,8 +43,8 @@ jobs:
                 load: true # Como o docker buildx build utiliza o driver do docker-container, eu preciso utilizar o load para a imagem ficar disponível para o docker engine
                 target: ci # O target é a etapa do Dockerfile que eu quero construir, nesse caso, a etapa "ci"
                 # Utiliza o cache do GitHub Actions para armazenar as camadas da imagem
-                cache-from: type=gha
-                cache-to: type=gha,mode=max
+                cache-from: type=gha # O cache-from vai utilizar o cache criado na máquina do GitHub Actions, é claro que é limitado pois estou utilzando a infraestrutura do GitHub, e em algum momento será necessário pagar  
+                cache-to: type=gha,mode=max # O mode=max vai tentar armazenar o máximo possível de camadas no cache, ou seja, as outras etapas do Dockerfile também serão cacheadas.
                 tags: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:ci
                 secrets: |
                   github_token=${{secrets.MY_GITHUB_TOKEN}}
@@ -51,4 +52,17 @@ jobs:
               run: |
                 docker compose -f ./nestjs-project/compose.ci.yaml up -d --wait-timeout 10 
             - name: Run tests
-              run: echo "running tests..."          
+              run: echo "running tests..."
+            - name: Build for Analysis
+              id: build-analysis
+              uses: docker/build-push-action@v7
+              with:
+                context: ./nestjs-project
+                file: ./nestjs-project/Dockerfile.prod
+                push: false
+                load: true
+                tags: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:${{env.SHA}}
+                cache-from: type=gha
+                cache-to: type=gha,mode=max
+                secrets: |
+                  github_token=${{secrets.MY_GITHUB_TOKEN}}        
