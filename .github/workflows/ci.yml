@@ -47,3 +47,8 @@ jobs:
                 tags: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}:ci
                 secrets: |
                   github_token=${{secrets.MY_GITHUB_TOKEN}}
+            - name: Up Containers
+              run: |
+                docker compose -f ./nestjs-project/compose.ci.yaml up -d --wait-timeout 10 
+            - name: Run tests
+              run: echo "running tests..."          
