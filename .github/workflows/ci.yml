@@ -135,13 +135,14 @@ jobs:
                   github_token=${{secrets.MY_GITHUB_TOKEN}}
             - name: Install cosign
               if: github.event_name != 'pull_request'
-              uses: sigstore/cosign-installer@v4.1.1
+              uses: sigstore/cosign-installer@v3.5.0
               with:
-                cosign-release: 'v3.0.5'
+                cosign-release: 'v2.2.4'
+            
             - name: Sign the published Docker image
-              if: ${{ github.event_name != 'pull_request' }}
+              if: github.event_name != 'pull_request'
               env:
-                TAGS: ${{steps.meta.outputs.tags}}
-                DIGEST: ${{steps.build-final.outputs.digest}}
+                TAGS: ${{ steps.meta.outputs.tags }}
+                DIGEST: ${{ steps.build-final.outputs.digest }}
               # Vai assinar todas as tags da imagem utilizando o cosign
               run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
