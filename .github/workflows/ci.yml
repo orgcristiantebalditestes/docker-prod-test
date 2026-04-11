@@ -144,4 +144,4 @@ jobs:
                 TAGS: ${{steps.meta.outputs.tags}}
                 DIGEST: ${{steps.build-final.outputs.digest}}
               # Vai assinar todas as tags da imagem utilizando o cosign
-              run: echo "${TAGS}" | xargs -I {} cosign sign --key {}@${DIGEST}
+              run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
